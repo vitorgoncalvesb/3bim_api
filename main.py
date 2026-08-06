@@ -1,61 +1,21 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List
+# main.py
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+from database import Base, engine, get_db
+from models import ProdutoDB
+from schemas import ProdutoCreate, ProdutoResponse
 
-app = FastAPI(
-    title="API de Tarefas",
-    description="Uma API simples feita com FastAPI",
-    version="1.0.0"
-)
+Base.metadata.create_all(bind=engine) # cria as tabelas, se ainda não existirem
+app = FastAPI()
 
-class Tarefa(BaseModel):
-    titulo: str
-    descricao: str
-    concluida: bool = False
+@app.get('/produtos', response_model=list[ProdutoResponse])
+def listar_produtos(db: Session = Depends(get_db)):
+    return db.query(ProdutoDB).all()
 
-tarefas = []
-
-@app.get("/")
-def inicio():
-    return {
-        "mensagem": "Bem-vindo à API de Tarefas 🚀",
-        "docs": "/docs"
-    }
-
-@app.get("/tarefas", response_model=List[Tarefa])
-def listar_tarefas():
-    return tarefas
-
-@app.post("/tarefas")
-def criar_tarefa(tarefa: Tarefa):
-    tarefas.append(tarefa)
-    return {
-        "mensagem": "Tarefa criada com sucesso!",
-        "tarefa": tarefa
-    }
-
-@app.get("/tarefas/{id}")
-def buscar_tarefa(id: int):
-    if id >= len(tarefas):
-        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
-    return tarefas[id]
-
-@app.put("/tarefas/{id}")
-def atualizar_tarefa(id: int, tarefa: Tarefa):
-    if id >= len(tarefas):
-        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
-    tarefas[id] = tarefa
-    return {
-        "mensagem": "Tarefa atualizada!",
-        "tarefa": tarefa
-    }
-
-@app.delete("/tarefas/{id}")
-def remover_tarefa(id: int):
-    if id >= len(tarefas):
-        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
-    removida = tarefas.pop(id)
-    return {
-        "mensagem": "Tarefa removida!",
-        "tarefa": removida
-    }
+@app.post('/produtos', response_model=ProdutoResponse, status_code=201)
+def criar_produto(produto: ProdutoCreate, db: Session = Depends(get_db)):
+    novo_produto = ProdutoDB(**produto.dict())
+    db.add(novo_produto)
+    db.commit()
+    db.refresh(novo_produto)
+    return novo_produto
