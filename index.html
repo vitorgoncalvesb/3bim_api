@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD de Produtos</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input {
+            padding: 8px;
+        }
+
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #eee;
+        }
+
+        .excluir {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
+
+        .editar {
+            background-color: #ffc107;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Produtos</h1>
+
+    <h2>Cadastrar produto</h2>
+
+    <form id="formProduto">
+
+        <input
+            type="text"
+            id="nome"
+            placeholder="Nome"
+            required
+        >
+
+        <input
+            type="number"
+            id="preco"
+            placeholder="Preço"
+            step="0.01"
+            required
+        >
+
+        <input
+            type="number"
+            id="quantidade"
+            placeholder="Quantidade"
+            required
+        >
+
+        <button type="submit">
+            Cadastrar
+        </button>
+
+    </form>
+
+
+    <h2>Produtos cadastrados</h2>
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Preço</th>
+                <th>Quantidade</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+
+        <tbody id="listaProdutos"></tbody>
+
+    </table>
+
+
+    <script>
+
+        const API = "http://127.0.0.1:8000";
+
+
+        // LISTAR PRODUTOS
+        async function listarProdutos() {
+
+            const resposta = await fetch(`${API}/produtos`);
+
+            if (!resposta.ok) {
+                console.error("Erro ao buscar produtos");
+                return;
+            }
+
+            const produtos = await resposta.json();
+
+            const lista = document.getElementById("listaProdutos");
+
+            lista.innerHTML = "";
+
+            produtos.forEach(produto => {
+
+                const linha = document.createElement("tr");
+
+                linha.innerHTML = `
+                    <td>${produto.id}</td>
+                    <td>${produto.nome}</td>
+                    <td>R$ ${produto.preco}</td>
+                    <td>${produto.quantidade}</td>
+
+                    <td>
+
+                        <button
+                            class="editar"
+                            onclick="editarProduto(${produto.id})">
+                            Editar
+                        </button>
+
+                        <button
+                            class="excluir"
+                            onclick="excluirProduto(${produto.id})">
+                            Excluir
+                        </button>
+
+                    </td>
+                `;
+
+                lista.appendChild(linha);
+
+            });
+        }
+
+
+        // CRIAR PRODUTO
+        document
+            .getElementById("formProduto")
+            .addEventListener("submit", async function(event) {
+
+                event.preventDefault();
+
+                const produto = {
+
+                    nome: document.getElementById("nome").value,
+
+                    preco: Number(
+                        document.getElementById("preco").value
+                    ),
+
+                    quantidade: Number(
+                        document.getElementById("quantidade").value
+                    )
+
+                };
+
+
+                const resposta = await fetch(`${API}/produtos`, {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify(produto)
+
+                });
+
+
+                if (!resposta.ok) {
+
+                    alert("Erro ao cadastrar produto");
+
+                    return;
+
+                }
+
+
+                alert("Produto cadastrado!");
+
+                document
+                    .getElementById("formProduto")
+                    .reset();
+
+                listarProdutos();
+
+            });
+
+
+        // EXCLUIR PRODUTO
+        async function excluirProduto(id) {
+
+            const confirmar = confirm(
+                "Deseja realmente excluir este produto?"
+            );
+
+            if (!confirmar) {
+                return;
+            }
+
+
+            const resposta = await fetch(
+                `${API}/produtos/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+            if (resposta.status === 204) {
+
+                alert("Produto excluído!");
+
+                listarProdutos();
+
+            } else {
+
+                alert("Erro ao excluir produto");
+
+            }
+
+        }
+
+
+        // EDITAR PRODUTO
+        async function editarProduto(id) {
+
+            const nome = prompt("Novo nome:");
+
+            if (nome === null) {
+                return;
+            }
+
+
+            const preco = prompt("Novo preço:");
+
+            if (preco === null) {
+                return;
+            }
+
+
+            const quantidade = prompt("Nova quantidade:");
+
+            if (quantidade === null) {
+                return;
+            }
+
+
+            const produto = {
+
+                nome: nome,
+
+                preco: Number(preco),
+
+                quantidade: Number(quantidade)
+
+            };
+
+
+            const resposta = await fetch(
+                `${API}/produtos/${id}`,
+                {
+
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify(produto)
+
+                }
+            );
+
+
+            if (resposta.ok) {
+
+                alert("Produto atualizado!");
+
+                listarProdutos();
+
+            } else {
+
+                alert("Erro ao atualizar produto");
+
+            }
+
+        }
+
+
+        // CARREGAR PRODUTOS AO ABRIR A PÁGINA
+        listarProdutos();
+
+    </script>
+
+</body>
+</html>
