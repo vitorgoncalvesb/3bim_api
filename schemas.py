@@ -12,6 +12,18 @@ class ProdutoCreate(ProdutoBase):
 
 class ProdutoResponse(ProdutoBase):
     id: int
-    
+
+class FilmeBase(BaseModel):
+    titulo: str
+    diretor: str
+    genero: str
+    duracao_minutos: float
+
+class FilmeCreate(FilmeBase):
+    pass
+
+class FilmeResponse(FilmeBase):
+    id: int
+
 class Config:
     from_attributes = True
