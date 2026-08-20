@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 06-Ago-2026 às 13:37
+-- Tempo de geração: 20-Ago-2026 às 13:29
 -- Versão do servidor: 10.4.22-MariaDB
 -- versão do PHP: 8.1.2
 
@@ -20,8 +20,29 @@ SET time_zone = "+00:00";
 --
 -- Banco de dados: `loja`
 --
-CREATE DATABASE IF NOT EXISTS `loja` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `loja`;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `filme`
+--
+
+CREATE TABLE `filme` (
+  `id` int(11) NOT NULL,
+  `titulo` varchar(200) NOT NULL,
+  `diretor` varchar(100) NOT NULL,
+  `genero` varchar(100) NOT NULL,
+  `duracao_minutos` float NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Extraindo dados da tabela `filme`
+--
+
+INSERT INTO `filme` (`id`, `titulo`, `diretor`, `genero`, `duracao_minutos`) VALUES
+(1, 'A Odisseia', 'Christopher Nolan', 'Epopeia', 175),
+(5, 'Homem-Aranha: Um Novo Dia', 'Destin Daniel Cretton', 'Ação', 145),
+(6, 'Backrooms: Um Não-Lugar', 'Jeremy Cox', 'Suspense', 110);
 
 -- --------------------------------------------------------
 
@@ -49,6 +70,13 @@ INSERT INTO `produtos` (`id`, `nome`, `preco`, `quantidade`) VALUES
 --
 
 --
+-- Índices para tabela `filme`
+--
+ALTER TABLE `filme`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `ix_Filme_id` (`id`);
+
+--
 -- Índices para tabela `produtos`
 --
 ALTER TABLE `produtos`
@@ -58,6 +86,12 @@ ALTER TABLE `produtos`
 --
 -- AUTO_INCREMENT de tabelas despejadas
 --
+
+--
+-- AUTO_INCREMENT de tabela `filme`
+--
+ALTER TABLE `filme`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de tabela `produtos`
