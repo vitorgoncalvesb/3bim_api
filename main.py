@@ -5,9 +5,14 @@ from database import Base, engine, get_db
 from models import ProdutoDB, FilmeDB
 from schemas import ProdutoCreate, ProdutoResponse, FilmeResponse, FilmeCreate
 
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
+
+@app.on_event("startup")
+def criar_tabelas():
+    Base.metadata.create_all(bind=engine)
+    
+def buscar_filme(db: Session, filme_id: int):
+    return db.query(FilmeDB).filter(FilmeDB.id == filme_id).first()
 
 app.add_middleware(
     CORSMiddleware,
@@ -106,7 +111,7 @@ def obter_filme(
     db: Session = Depends(get_db)
 ):
     filme = db.query(FilmeDB).filter(FilmeDB.id == id).first()
-
+    
     if filme is None:
         raise HTTPException(
             status_code=404,
